@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Digimon</title>
+    <style>
+        body {
+            font-family: Arial;
+            background-color: #f2f2f2;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .contenedor {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        select, input, button {
+            padding: 5px;
+            margin: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 6px;
+        }
+
+        th {
+            background-color: #e6e6e6;
+        }
+
+        #resultado {
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Buscador de Digimon</h1>
+
+    <div class="contenedor">
+        <select id="modo">
+            <option value="todos">Todos</option>
+            <option value="nombre">Por nombre</option>
+            <option value="nivel">Por nivel</option>
+        </select>
+
+        <input type="text" id="dato" placeholder="Escribe aquí...">
+        <button id="buscar">Buscar</button>
+    </div>
+
+    <div id="resultado">Buscar</div>
+
+    <script>
+        let modo = document.getElementById("modo");
+        let dato = document.getElementById("dato");
+        let resultado = document.getElementById("resultado");
+        let boton = document.getElementById("buscar");
+
+        boton.addEventListener("click", buscarDigimon);
+
+        dato.addEventListener("keydown", function(e) {
+            if (e.key === "Enter") {
+                buscarDigimon();
+            }
+        });
+
+        async function buscarDigimon() {
+            let url = "https://digimon-api.vercel.app/api/digimon";
+
+            if (modo.value === "nombre" && dato.value.trim() !== "") {
+                url += "/name/" + dato.value.trim();
+            }
+
+            if (modo.value === "nivel" && dato.value.trim() !== "") {
+                url += "/level/" + dato.value.trim();
+            }
+
+            resultado.textContent = "Cargando...";
+
+            let respuesta = await fetch(url);
+            let datos = await respuesta.json();
+            mostrarTabla(datos);
+        }
+
+        function mostrarTabla(lista) {
+            let tabla = "<table>";
+            tabla += "<tr><th>Nombre</th><th>Nivel</th></tr>";
+
+            for (let i = 0; i < lista.length; i++) {
+                tabla += "<tr><td>" + lista[i].name + "</td><td>" + lista[i].level + "</td></tr>";
+            }
+
+            tabla += "</table>";
+            resultado.innerHTML = tabla;
+        }
+    </script>
+</body>
+</html>

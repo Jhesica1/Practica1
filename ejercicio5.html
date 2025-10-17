@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galería Pokémon</title>
+    <style>
+        body {
+            font-family: Arial;
+            background-color: #f2f2f2;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .controles {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input, button {
+            padding: 6px;
+            margin: 4px;
+        }
+
+        .galeria {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+        }
+
+        .pokemon {
+            background-color: white;
+            border-radius: 8px;
+            text-align: center;
+            padding: 10px;
+            box-shadow: 0px 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .pokemon img {
+            width: 96px;
+            height: 96px;
+        }
+
+        #mensaje {
+            text-align: center;
+            color: gray;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Galería Pokémon</h1>
+
+    <div class="controles">
+        <input type="text" id="filtro" placeholder="Buscar por nombre">
+        <button id="anterior">Anterior</button>
+        <span id="pagina">Página 1</span>
+        <button id="siguiente">Siguiente</button>
+    </div>
+
+    <div id="galeria" class="galeria"></div>
+
+    <script>
+        let galeria = document.getElementById("galeria");
+        let filtro = document.getElementById("filtro");
+        let anterior = document.getElementById("anterior");
+        let siguiente = document.getElementById("siguiente");
+        let pagina = document.getElementById("pagina");
+
+        let numPagina = 0;
+
+        async function cargarPagina() {
+            galeria.innerHTML = "<div id='mensaje'>Cargando...</div>";
+            pagina.textContent = "Página " + (numPagina + 1);
+
+            let respuesta = await fetch("https://pokeapi.co/api/v2/pokemon?limit=20&offset=" + (numPagina * 20));
+            let datos = await respuesta.json();
+
+            let lista = [];
+
+            for (let i = 0; i < datos.results.length; i++) {
+                let info = await fetch(datos.results[i].url);
+                let pokemon = await info.json();
+                lista.push({
+                    nombre: pokemon.name,
+                    imagen: pokemon.sprites.front_default
+                });
+            }
+
+            mostrarPokemones(lista);
+        }
+
+        function mostrarPokemones(lista) {
+            let texto = filtro.value.toLowerCase();
+            let filtrados = [];
+
+            for (let i = 0; i < lista.length; i++) {
+                if (texto === "" || lista[i].nombre.includes(texto)) {
+                    filtrados.push(lista[i]);
+                }
+            }
+
+            let html = "";
+
+            for (let i = 0; i < filtrados.length; i++) {
+                html += "<div class='pokemon'>";
+                html += "<img src='" + filtrados[i].imagen + "' alt='" + filtrados[i].nombre + "'>";
+                html += "<div>" + filtrados[i].nombre + "</div>";
+                html += "</div>";
+            }
+
+            galeria.innerHTML = html;
+        }
+
+        anterior.addEventListener("click", function() {
+            if (numPagina > 0) {
+                numPagina--;
+                cargarPagina();
+            }
+        });
+
+        siguiente.addEventListener("click", function() {
+            numPagina++;
+            cargarPagina();
+        });
+
+        filtro.addEventListener("input", function() {
+            cargarPagina();
+        });
+
+        cargarPagina();
+    </script>
+
+</body>
+</html>
